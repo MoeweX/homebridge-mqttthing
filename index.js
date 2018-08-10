@@ -101,14 +101,18 @@ function makeThing(log, config) {
         // set up characteristic
         var charac = service.getCharacteristic(characteristic);
         charac.on('get', function (callback) {
+            console.log("Get value, is " + state[property]);
+            // if the below line is removed, Home cannot renew a cached value and the device is shown as unreachable
             callback(null, state[property]);
         });
         if (setTopic) {
             charac.on('set', function (value, callback, context) {
+                console.log("Set to " + value);
                 if (context !== c_mySetContext) {
                     state[property] = value;
                     mqttPublish(setTopic, onOffValue(value));
                 }
+                // if the below line is removed, Home does not receive a response from homebridge, so the device is shown as unreachable (even though an mqtt publish was triggered)
                 callback();
             });
         }
@@ -248,11 +252,11 @@ function makeThing(log, config) {
         }
     }
 
-    /* 
+    /*
      * HSV to RGB conversion from https://stackoverflow.com/questions/17242144/javascript-convert-hsb-hsv-color-to-rgb-accurately
      * accepts parameters
      * h  Object = {h:x, s:y, v:z}
-     * OR 
+     * OR
      * h, s, v
      */
     function HSVtoRGB(h, s, v) {
@@ -286,7 +290,7 @@ function makeThing(log, config) {
 
     /* accepts parameters
      * r  Object = {r:x, g:y, b:z}
-     * OR 
+     * OR
      * r, g, b
      */
     function RGBtoHSV(r, g, b) {
@@ -315,7 +319,7 @@ function makeThing(log, config) {
 
     function RGBtoScaledHSV( r, g, b ) {
         var hsv = RGBtoHSV( r, g, b );
-        return { 
+        return {
             h: hsv.h * 360,
             s: hsv.s * 100,
             v: hsv.v * 100
@@ -509,7 +513,7 @@ function makeThing(log, config) {
                 updateColour( state.red, state.green, state.blue, state.white );
             } );
         }
-    }    
+    }
 
     function floatCharacteristic(service, property, characteristic, setTopic, getTopic, initialValue) {
         // default state
@@ -756,7 +760,7 @@ function makeThing(log, config) {
                 return val ? Characteristic.SmokeDetected.SMOKE_DETECTED : Characteristic.SmokeDetected.SMOKE_NOT_DETECTED;
             });
     }
-    
+
     // Characteristic.CurrentDoorState
     function characteristic_CurrentDoorState(service) {
         let values = config.doorValues;
@@ -779,7 +783,7 @@ function makeThing(log, config) {
     function characteristic_ObstructionDetected(service) {
         booleanCharacteristic(service, 'obstrucdet', Characteristic.ObstructionDetected, null, config.topics.getObstructionDetected, false);
     }
-    
+
     // Characteristic.LockCurrentState
     function characteristic_LockCurrentState(service) {
         let values = config.lockValues;
@@ -808,7 +812,7 @@ function makeThing(log, config) {
         integerCharacteristic(service, 'rotationSpeed', Characteristic.RotationSpeed, config.topics.setRotationSpeed, config.topics.getRotationSpeed);
     }
 
-    
+
     // Create service
     function createServices() {
 
